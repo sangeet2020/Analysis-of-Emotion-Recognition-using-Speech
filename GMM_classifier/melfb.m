@@ -1,0 +1,61 @@
+%From: <Saved by Microsoft Internet Explorer 5>
+%Subject: 
+%Date: Thu, 24 Feb 2005 13:50:07 +0530
+%MIME-Version: 1.0
+%Content-Type: text/html;
+%	charset="Windows-1252"
+%%Content-Location: http://lcavwww.epfl.ch/~minhdo/asr_project/code/melfb.m
+%X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2800.1106
+
+%<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+%<HTML><HEAD>
+%<META http-equiv=3DContent-Type content=3D"text/html; =charset=3Dwindows-1252">
+%<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR></HEAD>
+ function m = melfb(p, n, fs)
+% MELFB         Determine matrix for a mel-spaced filterbank
+%
+% Inputs:       p   number of filters in filterbank
+%               n   length of fft
+%               fs  sample rate in Hz
+%
+% Outputs:      x   a (sparse) matrix containing the filterbank =amplitudes
+%                   size(x) =3D [p, 1+floor(n/2)]
+%
+% Usage:        For example, to compute the mel-scale spectrum of a
+%               colum-vector signal s, with length n and sample rate fs:
+%
+%               f =3D fft(s);
+%               m =3D melfb(p, n, fs);
+%               n2 =3D 1 + floor(n/2);
+%               z =3D m * abs(f(1:n2)).^2;
+%
+%               z would contain p samples of the desired mel-scale =spectrum
+%
+%               To plot filterbanks e.g.:
+%
+%               plot(linspace(0, (12500/2), 129), melfb(20, 256, =12500)'),
+%               title('Mel-spaced filterbank'), xlabel('Frequency =(Hz)');
+f0 = 700 / fs;
+
+fn2 = floor(n/2);
+
+lr =log(1 + 0.5/f0) / (p+1);
+
+% convert to fft bin numbers with 0 for DC term
+bl = n * (f0 * (exp([0 1 p p+1] * lr) - 1));
+
+b1 = floor(bl(1)) + 1;
+b2 = ceil(bl(2));
+b3 = floor(bl(3));
+b4 = min(fn2, ceil(bl(4))) - 1;
+
+pf = log(1 + (b1:b4)/n/f0) / lr;
+fp = floor(pf);
+pm = pf - fp;
+
+r = [fp(b2:b4) 1+fp(1:b3)];
+c = [b2:b4 1:b3] + 1;
+v = 2 * [1-pm(b2:b4) pm(1:b3)];
+
+m = sparse(r, c, v, p, 1+fn2);
+%</PRE></BODY></HTML>
